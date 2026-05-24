@@ -12,3 +12,4 @@ infra/*.tfplan
 .venv/
 
 # tests
+__pycache__/
