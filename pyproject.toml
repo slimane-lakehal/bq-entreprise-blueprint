@@ -1,9 +1,12 @@
 [project]
 name = "bq-entreprise-blueprint"
 version = "0.1.0"
-description = "Add your description here"
+description = "Groupe Lumio data platform — BigQuery enterprise blueprint"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "dbt-bigquery>=1.11.1",
 ]
+
+[tool.uv.workspace]
+members = ["ingestion"]
