@@ -1,0 +1,60 @@
+name: Batch Ingestion
+
+on:
+  schedule:
+    - cron: '0 3 * * *'   # 03:00 UTC daily
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Run date (YYYY-MM-DD). Defaults to today.'
+        required: false
+        default: ''
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.INGESTION_SA_EMAIL }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+
+      - name: Install ingestion package
+        run: uv sync --package ingestion
+
+      - name: Resolve run date
+        id: date
+        run: |
+          DATE="${{ github.event.inputs.date }}"
+          echo "value=${DATE:-$(date +%Y-%m-%d)}" >> "$GITHUB_OUTPUT"
+
+      - name: Ingest SAP inventory
+        run: |
+          uv run ingest-sap \
+            --bucket lumio-raw-data-dev \
+            --date ${{ steps.date.outputs.value }}
+
+      - name: Ingest Salesforce CRM
+        run: |
+          uv run ingest-salesforce \
+            --bucket lumio-raw-data-dev \
+            --date ${{ steps.date.outputs.value }}
+
+# Note: Cegid (Olist) is a one-time historical load, not a daily job.
+# Run manually with:
+#   uv run ingest-cegid --data-dir /path/to/olist --bucket lumio-raw-data-dev --date 2024-01-01
