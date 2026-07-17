@@ -116,11 +116,11 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   }
 
   # Restrict to this repo — any other repo's token is rejected
-  attribute_condition = "attribute.repository == 'slimane-lakehal/bq-enterprise-blueprint'"
+  attribute_condition = "attribute.repository == 'slimane-lakehal/bq-entreprise-blueprint'"
 }
 
 resource "google_service_account_iam_member" "wif_ingestion" {
   service_account_id = google_service_account.ingestion.name
   role               = "roles/iam.workloadIdentityUser"
-  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/slimane-lakehal/bq-enterprise-blueprint"
+  member             = "principalSet://iam.googleapis.com/${google_iam_workload_identity_pool.github.name}/attribute.repository/slimane-lakehal/bq-entreprise-blueprint"
 }
